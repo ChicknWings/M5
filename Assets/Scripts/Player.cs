@@ -13,11 +13,13 @@ public class Player : NetworkBehaviour {
     private Camera _camera;
     public float movementSpeed = .5f;
     public float rotationSpeed = 1f;
+    private BulletSpawner _bulletSpawner;
     
     private void Start()
     {
         ApplyPlayerColor();
         PlayerColor.OnValueChanged += OnPlayerColorChanged;
+        _bulletSpawner = transform.Find("RArm").transform.Find("BulletSpawner").GetComponent<BulletSpawner>();
     }
 
     public override void OnNetworkSpawn() {
@@ -46,6 +48,8 @@ public class Player : NetworkBehaviour {
 
     public void ApplyPlayerColor() {
         GetComponent<MeshRenderer>().material.color = PlayerColor.Value;
+        transform.Find("LArm").GetComponent<MeshRenderer>().material.color = PlayerColor.Value;
+        transform.Find("RArm").GetComponent<MeshRenderer>().material.color = PlayerColor.Value;
     }
 
 
@@ -78,7 +82,11 @@ public class Player : NetworkBehaviour {
         if (IsOwner) {
             Vector3[] results = CalcMovement();
                 RequestPositionForMovementServerRpc(results[0],results[1]);
+            if (Input.GetButtonDown("Fire1")) {
+                _bulletSpawner.FireServerRpc();
+            }
         } 
+
         
         if(!IsOwner || IsHost){
             transform.Translate(PositionChange.Value);
